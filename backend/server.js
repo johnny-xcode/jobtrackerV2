@@ -12,23 +12,31 @@ dotenv.config();
 connectDB();
 
 const app = express();
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-app.use(cors());
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const distPath = path.join(__dirname, "../frontend/dist");
+
+
+if(process.env.NODE_ENV !== "production")
+{
+      app.use(cors({origin: "http://localhost:5173"})); // Enable CORS for all routes
+}
+
+
 app.use(express.json({ limit: "1mb" }));
 
 app.use("/api/users", userRoutes);
 app.use("/api/jobs", jobRoutes);
 
-app.get("/", (req, res) => {
-  res.send("JobLens API is running");
-});
-
-const distPath = path.join(__dirname, "../../frontend/dist");
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
+
   app.get(/^\/(?!api).*/, (req, res) => {
     res.sendFile(path.join(distPath, "index.html"));
+  });
+} else {
+  app.get("/", (req, res) => {
+    res.send("JobLens API is running");
   });
 }
 
